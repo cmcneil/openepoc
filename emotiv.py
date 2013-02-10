@@ -29,8 +29,16 @@ sensorBits = {
     'FC6': [214, 215, 200, 201, 202, 203, 204, 205, 206, 207, 192, 193, 194, 195],
     'F4': [216, 217, 218, 219, 220, 221, 222, 223, 208, 209, 210, 211, 212, 213]
 }
-sensor_ord = ['F3', 'FC5', 'AF3', 'F7', 'T7', 'P7', 'O1', 'O2', 'P8', 'T8', 'F8', 'AF4', 'FC6', 'F4', 'F8', 'AF4', 'F3', 'FC5', 'AF3']
+sensor_ord = ['F3', 'FC5', 'AF3', 'F7', 'T7', 'P7', 'O1', 'O2', 'P8', 'T8',
+              'F8', 'AF4', 'FC6', 'F4', 'F8', 'AF4', 'F3', 'FC5', 'AF3']
 quality_bits = [99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112]
+
+# These specify what percentages the battery bits signify. The first value
+# is for 225, and the last is for 248.
+# See https://github.com/qdot/emokit/blob/master/doc/emotiv_protocol.asciidoc
+battery_vals = [0, 0.42, 0.88, 1.42, 2.05, 2.80, 3.63, 5.08, 12.37, 20.43,
+                32.34， 45.93， 55.37， 61.92， 66.59， 71.54， 76.77， 81.89，
+                85.23， 89.45， 93.40， 97.02， 99.93， 100]
 
 g_battery = 0
 tasks = Queue()
@@ -83,52 +91,10 @@ class EmotivPacket(object):
     def battery_percent(self):
         if self.battery > 248:
             return 100
-        elif self.battery == 247:
-            return 99
-        elif self.battery == 246:
-            return 97
-        elif self.battery == 245:
-            return 93
-        elif self.battery == 244:
-            return 89
-        elif self.battery == 243:
-            return 85
-        elif self.battery == 242:
-            return 82
-        elif self.battery == 241:
-            return 77
-        elif self.battery == 240:
-            return 72
-        elif self.battery == 239:
-            return 66
-        elif self.battery == 238:
-            return 62
-        elif self.battery == 237:
-            return 55
-        elif self.battery == 236:
-            return 46
-        elif self.battery == 235:
-            return 32
-        elif self.battery == 234:
-            return 20
-        elif self.battery == 233:
-            return 12
-        elif self.battery == 232:
-            return 6
-        elif self.battery == 231:
-            return 4
-        elif self.battery == 230:
-            return 3
-        elif self.battery == 229:
-            return 2
-        elif self.battery == 228:
-            return 2
-        elif self.battery == 227:
-            return 2
-        elif self.battery == 226:
-            return 1
-        else:
+        elif self.battery < 225:
             return 0
+        else:
+            return battery_vals[self.battery - 225]
 
     def __repr__(self):
         return 'EmotivPacket(counter=%i, battery=%i, gyroX=%i, gyroY=%i, F3=%i)' % (
