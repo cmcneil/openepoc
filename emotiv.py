@@ -29,6 +29,7 @@ sensorBits = {
     'FC6': [214, 215, 200, 201, 202, 203, 204, 205, 206, 207, 192, 193, 194, 195],
     'F4': [216, 217, 218, 219, 220, 221, 222, 223, 208, 209, 210, 211, 212, 213]
 }
+sensor_ord = ['F3', 'FC5', 'AF3', 'F7', 'T7', 'P7', 'O1', 'O2', 'P8', 'T8', 'F8', 'AF4', 'FC6', 'F4', 'F8', 'AF4', 'F3', 'FC5', 'AF3']
 quality_bits = [99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112]
 
 g_battery = 0
@@ -67,72 +68,13 @@ class EmotivPacket(object):
     def handle_quality(self, sensors):
         current_contact_quality = self.get_level(self.rawData, quality_bits) / 540
         sensor = ord(self.rawData[0])
-        if sensor == 0:
-            sensors['F3']['quality'] = current_contact_quality
-        elif sensor == 1:
-            sensors['FC5']['quality'] = current_contact_quality
-        elif sensor == 2:
-            sensors['AF3']['quality'] = current_contact_quality
-        elif sensor == 3:
-            sensors['F7']['quality'] = current_contact_quality
-        elif sensor == 4:
-            sensors['T7']['quality'] = current_contact_quality
-        elif sensor == 5:
-            sensors['P7']['quality'] = current_contact_quality
-        elif sensor == 6:
-            sensors['O1']['quality'] = current_contact_quality
-        elif sensor == 7:
-            sensors['O2']['quality'] = current_contact_quality
-        elif sensor == 8:
-            sensors['P8']['quality'] = current_contact_quality
-        elif sensor == 9:
-            sensors['T8']['quality'] = current_contact_quality
-        elif sensor == 10:
-            sensors['F8']['quality'] = current_contact_quality
-        elif sensor == 11:
-            sensors['AF4']['quality'] = current_contact_quality
-        elif sensor == 12:
-            sensors['FC6']['quality'] = current_contact_quality
-        elif sensor == 13:
-            sensors['F4']['quality'] = current_contact_quality
-        elif sensor == 14:
-            sensors['F8']['quality'] = current_contact_quality
-        elif sensor == 15:
-            sensors['AF4']['quality'] = current_contact_quality
-        elif sensor == 64:
-            sensors['F3']['quality'] = current_contact_quality
-        elif sensor == 65:
-            sensors['FC5']['quality'] = current_contact_quality
-        elif sensor == 66:
-            sensors['AF3']['quality'] = current_contact_quality
-        elif sensor == 67:
-            sensors['F7']['quality'] = current_contact_quality
-        elif sensor == 68:
-            sensors['T7']['quality'] = current_contact_quality
-        elif sensor == 69:
-            sensors['P7']['quality'] = current_contact_quality
-        elif sensor == 70:
-            sensors['O1']['quality'] = current_contact_quality
-        elif sensor == 71:
-            sensors['O2']['quality'] = current_contact_quality
-        elif sensor == 72:
-            sensors['P8']['quality'] = current_contact_quality
-        elif sensor == 73:
-            sensors['T8']['quality'] = current_contact_quality
-        elif sensor == 74:
-            sensors['F8']['quality'] = current_contact_quality
-        elif sensor == 75:
-            sensors['AF4']['quality'] = current_contact_quality
-        elif sensor == 76:
-            sensors['FC6']['quality'] = current_contact_quality
-        elif sensor == 77:
-            sensors['F4']['quality'] = current_contact_quality
-        elif sensor == 78:
-            sensors['F8']['quality'] = current_contact_quality
-        elif sensor == 79:
-            sensors['AF4']['quality'] = current_contact_quality
-        elif sensor == 80:
-            sensors['FC6']['quality'] = current_contact_quality
+
+        # Note: we currently don't know what the quality bits signal for
+        # the sensor code between 16 and 63. Why isn't it the same
+        # repeated pattern? According to qdot's docs it isn't.
+        if !(16 <= sensor <= 63) and sensor < 127:
+            sens_label = sensor_ord[sensor % 16]
+            sensors[sens_label]['quality'] = current_contact_quality
         else:
             sensors['Unknown']['quality'] = current_contact_quality
             sensors['Unknown']['value'] = sensor
