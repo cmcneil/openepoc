@@ -1,3 +1,4 @@
+'''Authored by qdot, with changes by cmcneil.'''
 import gevent
 
 try:
@@ -37,8 +38,8 @@ quality_bits = [99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 
 # is for 225, and the last is for 248.
 # See https://github.com/qdot/emokit/blob/master/doc/emotiv_protocol.asciidoc
 battery_vals = [0, 0.42, 0.88, 1.42, 2.05, 2.80, 3.63, 5.08, 12.37, 20.43,
-                32.34， 45.93， 55.37， 61.92， 66.59， 71.54， 76.77， 81.89，
-                85.23， 89.45， 93.40， 97.02， 99.93， 100]
+                32.34, 45.93, 55.37, 61.92, 66.59, 71.54, 76.77, 81.89, 
+                85.23, 89.45, 93.40, 97.02, 99.93, 100]
 
 g_battery = 0
 tasks = Queue()
@@ -80,7 +81,7 @@ class EmotivPacket(object):
         # Note: we currently don't know what the quality bits signal for
         # the sensor code between 16 and 63. Why isn't it the same
         # repeated pattern? According to qdot's docs it isn't.
-        if !(16 <= sensor <= 63) and sensor < 127:
+        if not (16 <= sensor <= 63) and sensor < 127:
             sens_label = sensor_ord[sensor % 16]
             sensors[sens_label]['quality'] = current_contact_quality
         else:
