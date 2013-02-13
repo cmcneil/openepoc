@@ -38,7 +38,10 @@ def record(length, label=""):
     print "Data Written to " + filename + "!"
 
 def load(filename):
-    '''Loads data from pickle file into a list of objects and returns it.'''
+    '''Loads data from pickle file into a list tuples of the form:
+        (EmoPacket, label). label is "" if we are doing unsupervised.
+        This allows us to interleave labeled and unlabeled packets from
+        a single recording session into one file.'''
     f = open(filename, "rb")
     lst = pickle.load(f)
     f.close()
