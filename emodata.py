@@ -5,28 +5,30 @@
 
 # TODO: Add options for labeling data using keystrokes.
 
-from emotive import Emotiv
+from emotiv import Emotiv
 import time
 import gevent
-import pickle
+import cPickle as pickle
 
 
-def record(length):
+def record(length, label=""):
     '''Records for length seconds, saving all of the raw data into a pickle
         file.'''
-    emotiv = Emotiv(displayOutput=False)
+    emotiv = Emotiv(displayOutput=False, research_headset=False)
 
     print "Beginning Recording..."
-    t0 = time.clock()
-    filename = "data/"+str(length)+"sdump"+str(t0)+".pkl"
+    t0 = int(time.time())
+    filename = "data/"+str(length)+"sdump"+str(t0)+ "-" + label + ".pkl"
     packet_list = []
     gevent.spawn(emotiv.setup)
-    while (time.clock - t0) < length:
-    try:
-        packet = emotiv.dequeue()
-    except Empty, e:
-        pass
-    packet_list.append(packet)
+    gevent.sleep(1)
+    while (time.time() - t0) < length:
+        try:
+            packet = emotiv.dequeue()
+            packet_list.append((packet, label))
+        except gevent.queue.Empty, e:
+            print "Queue is empty!"
+            pass
     emotiv.close()
     print "Done!"
     print "Writing Data..."
@@ -36,6 +38,7 @@ def record(length):
     print "Data Written to " + filename + "!"
 
 def load(filename):
+    '''Loads data from pickle file into a list of objects and returns it.'''
     f = open(filename, "rb")
     lst = pickle.load(f)
     f.close()
