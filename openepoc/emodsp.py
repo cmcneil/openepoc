@@ -2,8 +2,6 @@
 format to be used for learning. Currently, it ~4second bins, and takes the
 fourier transform, looking at lower frequency components."""
 
-import emodata
-import emotiv
 import numpy as np
 import fftw3f
 

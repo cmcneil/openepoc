@@ -1,1 +1,0 @@
-/home/carson/Desktop/emokit-fork/python/emotiv.py
