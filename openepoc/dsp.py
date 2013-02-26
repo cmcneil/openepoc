@@ -7,13 +7,16 @@ import fftw3f
 
 SAMPLE_RATE = 128.0 # Hz, the rate at which emotiv packets arrive.
 NUM_ELECS = 14
-BIN_SIZE = 4.0 # Seconds, the size of a given timesample to be used as the unit.
-STAGGER = 1.0 # The number of seconds by which we stagger samples.
+BIN_SIZE = 3.0 # Seconds, the size of a given timesample to be used as the unit.
+STAGGER = 0.5 # The number of seconds by which we stagger samples.
 FREQ_CUTOFF = 13 # The feature vector will only contain the first FREQ_CUTOFF
                  # frequencies, which are spaced based on BIN_SIZE
                  # and SAMPLE_FREQ
 
 freqs = np.fft.fftfreq(int(BIN_SIZE * SAMPLE_RATE), d=1.0/SAMPLE_RATE)
+
+sensors = ['F3', 'FC5', 'AF3', 'F7', 'T7', 'P7', 'O1', 'O2', 'P8', 'T8',
+              'F8', 'AF4', 'FC6', 'F4']
 
 def fastest_fourier(data):
     '''Takes a matrix of the data and fourier transforms all of it.'''
@@ -26,9 +29,22 @@ def fastest_fourier(data):
 def get_features(packets):
     '''This function will return a feature vector when given a particular
         bin of emotiv data, expected in the form of an array of Packets'''
-    if len(bin_data) != int(BIN_SIZE * SAMPLE_RATE):
+    def get_values(dic):
+        '''This is a temporary function to allow compatibility with old
+            datasets. It is terrible. remove it after collecting new data.'''
+        lst = []
+        global sensors
+        for sensor in sensors:
+            lst.append(getattr(dic, sensor)[0])
+        return lst
+    print "check!"
+    if len(packets) != int(BIN_SIZE * SAMPLE_RATE):
+        print "problem:"
+        print str(len(packets))
+        print str(int(BIN_SIZE * SAMPLE_RATE))
         raise EmoDSPException
-    data = np.array(map(lambda p : p.get_values(),
+    label = packets[0][1]
+    data = np.array(map(lambda p : get_values(p[0]),
                         packets), order='F').transpose()
     pows = np.abs(np.fft.fft(data))[:, :FREQ_CUTOFF]
     return pows.flatten()

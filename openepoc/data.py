@@ -5,7 +5,9 @@
 
 # TODO: Add options for labeling data using keystrokes.
 
+import emotiv
 from emotiv import Emotiv
+#from emotiv import *
 import time
 import gevent
 import cPickle as pickle
@@ -25,7 +27,7 @@ def record(length, label=""):
     while (time.time() - t0) < length:
         try:
             packet = emotiv.dequeue()
-            packet_list.append((packet, label))
+            packet_list.append(packet, label)
         except gevent.queue.Empty, e:
             print "Queue is empty!"
             pass

@@ -1,5 +1,5 @@
-__all__ = ['emodsp', 'emodata', 'emolearn']
+__all__ = ['dsp', 'data', 'learn']
 
-import emodsp
-import emodata
-import emolearn
+import dsp
+import data
+import learn
