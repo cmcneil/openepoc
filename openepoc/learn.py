@@ -7,6 +7,8 @@ import data
 import re
 
 from sklearn.decomposition import RandomizedPCA
+from sklearn.svm import SVC
+from sklearn.cross_validation import cross_val_score
 
 class Classifier:
     def __init__(self, filelist):
@@ -25,14 +27,13 @@ class Classifier:
                 else:
                     self.raw_labelled[label] = [data.load(name)]
 
-    
-
     def extract_features(self):
         '''Does feature extraction for all of the datasets.'''
         
         def get_featurevec(data):
+            # CHECK THIS: 
             num_bins = (len(data)/int(dsp.SAMPLE_RATE*dsp.STAGGER) -
-                        int(dsp.BIN_SIZE) + 1)
+                        int(dsp.BIN_SIZE / dsp.STAGGER) + 1)
             size = int(dsp.BIN_SIZE*dsp.SAMPLE_RATE)
             starts = int(dsp.SAMPLE_RATE*dsp.STAGGER)
             points = []
@@ -52,10 +53,64 @@ class Classifier:
 
     def reduce_dim(self):
         '''Reduces the dimension of the extracted feature vectors.'''
-        pca = RandomizedPCA(n_components=6)
+        NDIM = 5
         X = np.array(self.neutral)
-        print X
-        print X.shape
-        pca.fit(X)
-        neutral_new = pca.transform(X)
-        return neutral_new
+        pca = RandomizedPCA(n_components=NDIM).fit(X)
+        print pca.explained_variance_ratio_
+        self.neutral = pca.transform(X)
+        for label in self.labelled:
+            X = np.array(self.labelled[label])
+            self.labelled[label] = pca.transform(X)
+
+    def train(self):
+        '''Trains the classifier.'''
+        lab = self.labelled.keys()[0]
+
+        X_train = np.concatenate((self.neutral, self.labelled[lab]), axis=0)
+        y_train = np.array([0]*len(self.neutral) + [1]*len(self.labelled[lab]))
+
+        self.svm = SVC(kernel='poly')
+        self.svm.fit(X_train, y_train)
+
+    def test_SVM(self):
+        '''Splits the sets into training sets and test sets.'''
+        perc = 8 # Will use 1/perc of the data for the test set.
+        lab = self.labelled.keys()[0]
+        test_neutral = self.neutral[len(self.neutral)-len(self.neutral)/perc:]
+        test_lab = self.labelled[lab][len(self.labelled[lab])-\
+                                      len(self.labelled[lab])/perc:]
+
+        X_test = np.concatenate((test_neutral, test_lab), axis=0)
+        y_test = np.array([0]*len(test_neutral) + [1]*len(test_lab))
+
+        neutral_train = self.neutral[:len(self.neutral)-len(self.neutral)/perc]
+        label_train = self.labelled[lab][:len(self.labelled[lab])-\
+                                      len(self.labelled[lab])/perc]
+
+        X_train = np.concatenate((neutral_train, label_train), axis=0)
+        y_train = np.array([0]*len(neutral_train) + [1]*len(label_train))
+        
+##        gammas = [0.00001, 0.001, 0.01, 0.1, 0.2, 0.4, 1.0, 2.5]
+##        best_gamma = (0.1, 0.0)
+##        for test in gammas:
+##            potential = SVC(gamma=test)
+##            score = cross_val_score(potential, X_train, y_train, cv=8).mean()
+##            potential.fit(X_train, y_train)
+##            print "support vectors: " + str(potential.n_support_)
+##            if score > best_gamma[1]:
+##                best_gamma = (test, score)
+
+##        kernels = ['linear', 'poly', 'sigmoid']
+##        for kern in kernels:
+##            potential = SVC(kernel=kern)
+####            score = cross_val_score(potential, X_train, y_train, cv=8).mean()
+##            potential.fit(X_train, y_train)
+##            print "support vectors: " + str(potential.n_support_)
+##            print "score: " + str(potential.score(X_test, y_test))
+        
+        svm = SVC(kernel='poly')
+        svm.fit(X_train, y_train)
+        print "Number of support vectors: " + str(svm.n_support_)
+        print svm.score(X_test, y_test).mean()
+
+        
