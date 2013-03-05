@@ -37,7 +37,7 @@ def get_features(packets):
         for sensor in sensors:
             lst.append(getattr(dic, sensor)[0])
         return lst
-    print "check!"
+##    print "check!"
     if len(packets) != int(BIN_SIZE * SAMPLE_RATE):
         print "problem:"
         print str(len(packets))

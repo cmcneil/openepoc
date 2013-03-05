@@ -16,6 +16,7 @@ class Classifier:
         self.neutral = []
         self.labelled = {}
         self.raw_labelled = {}
+        self.labelled_red = {}
         for name in filelist:
             label = re.match('[\w/]+-(\w+)\.pkl', name).group(1)
             if label == 'neutral':
@@ -27,10 +28,9 @@ class Classifier:
                 else:
                     self.raw_labelled[label] = [data.load(name)]
 
-    def extract_features(self):
-        '''Does feature extraction for all of the datasets.'''
-        
-        def get_featurevec(data):
+    def get_featurevec(self, data):
+            '''Takes in data in the form of an array of EmoPackets, and outputs
+                a list of feature vectors.'''
             # CHECK THIS: 
             num_bins = (len(data)/int(dsp.SAMPLE_RATE*dsp.STAGGER) -
                         int(dsp.BIN_SIZE / dsp.STAGGER) + 1)
@@ -41,15 +41,29 @@ class Classifier:
                 points.append(dsp.get_features(data[i*starts:i*starts+size]))
             return points
         
+    def add_data(self, raw, label):
+        '''Allows the addition of new data. Will retrain upon addition.
+            Expects a list of EmoPackets.'''
+        if label == 'neutral':
+            self.neutral.extend(self.get_featurevec(raw))
+        else:
+            if label in self.labelled:
+                self.labelled[label].extend(self.get_featurevec(raw))
+            else:
+                self.labelled[label] = self.get_featurevec(raw)
+
+##        self.reduce_dim()
+##        self.train()
+
+    def extract_features(self):
+        '''Does feature extraction for all of the datasets.'''
         self.neutral = []
-        print "NEUTRAL**********"
         for sess in self.raw_neutral:
-            self.neutral.extend(get_featurevec(sess))
+            self.neutral.extend(self.get_featurevec(sess))
         for key in self.raw_labelled:
-            print "LABEL:"+str(key)+"************"
             self.labelled[key] = []
             for sess in self.raw_labelled[key]:
-                self.labelled[key].extend(get_featurevec(sess))
+                self.labelled[key].extend(self.get_featurevec(sess))
 
     def reduce_dim(self):
         '''Reduces the dimension of the extracted feature vectors.'''
@@ -57,35 +71,42 @@ class Classifier:
         X = np.array(self.neutral)
         pca = RandomizedPCA(n_components=NDIM).fit(X)
         print pca.explained_variance_ratio_
-        self.neutral = pca.transform(X)
+        self.neutral_red = pca.transform(X)
         for label in self.labelled:
             X = np.array(self.labelled[label])
-            self.labelled[label] = pca.transform(X)
+            self.labelled_red[label] = pca.transform(X)
 
     def train(self):
         '''Trains the classifier.'''
-        lab = self.labelled.keys()[0]
+        lab = self.labelled_red.keys()[0]
 
-        X_train = np.concatenate((self.neutral, self.labelled[lab]), axis=0)
-        y_train = np.array([0]*len(self.neutral) + [1]*len(self.labelled[lab]))
+        X_train = np.concatenate((self.neutral_red,
+                                  self.labelled_red[lab]), axis=0)
+        y_train = np.array([0]*len(self.neutral_red) +
+                           [1]*len(self.labelled_red[lab]))
 
         self.svm = SVC(kernel='poly')
         self.svm.fit(X_train, y_train)
 
+    def classify(self, data):
+        ''''Classify a point. Expects a bunch of packets.'''
+        X = self.get_featurevec(data)[0]
+        return self.svm.predict(X)
+
     def test_SVM(self):
         '''Splits the sets into training sets and test sets.'''
         perc = 8 # Will use 1/perc of the data for the test set.
-        lab = self.labelled.keys()[0]
-        test_neutral = self.neutral[len(self.neutral)-len(self.neutral)/perc:]
-        test_lab = self.labelled[lab][len(self.labelled[lab])-\
-                                      len(self.labelled[lab])/perc:]
+        lab = self.labelled_red.keys()[0]
+        test_neutral = self.neutral_red_red[len(self.neutral_red)-len(self.neutral_red)/perc:]
+        test_lab = self.labelled_red[lab][len(self.labelled_red[lab])-\
+                                      len(self.labelled_red[lab])/perc:]
 
         X_test = np.concatenate((test_neutral, test_lab), axis=0)
         y_test = np.array([0]*len(test_neutral) + [1]*len(test_lab))
 
-        neutral_train = self.neutral[:len(self.neutral)-len(self.neutral)/perc]
-        label_train = self.labelled[lab][:len(self.labelled[lab])-\
-                                      len(self.labelled[lab])/perc]
+        neutral_train = self.neutral_red[:len(self.neutral_red)-len(self.neutral_red)/perc]
+        label_train = self.labelled_red[lab][:len(self.labelled_red[lab])-\
+                                      len(self.labelled_red[lab])/perc]
 
         X_train = np.concatenate((neutral_train, label_train), axis=0)
         y_train = np.array([0]*len(neutral_train) + [1]*len(label_train))
