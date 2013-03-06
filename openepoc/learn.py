@@ -52,9 +52,6 @@ class Classifier:
             else:
                 self.labelled[label] = self.get_featurevec(raw)
 
-##        self.reduce_dim()
-##        self.train()
-
     def extract_features(self):
         '''Does feature extraction for all of the datasets.'''
         self.neutral = []
@@ -71,6 +68,7 @@ class Classifier:
         X = np.array(self.neutral)
         pca = RandomizedPCA(n_components=NDIM).fit(X)
         print pca.explained_variance_ratio_
+        self.pca = pca
         self.neutral_red = pca.transform(X)
         for label in self.labelled:
             X = np.array(self.labelled[label])
@@ -90,7 +88,7 @@ class Classifier:
 
     def classify(self, data):
         ''''Classify a point. Expects a bunch of packets.'''
-        X = self.get_featurevec(data)[0]
+        X = self.pca.transform(np.array(self.get_featurevec(data)[0]))
         return self.svm.predict(X)
 
     def test_SVM(self):

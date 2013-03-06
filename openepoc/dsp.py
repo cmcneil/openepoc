@@ -30,21 +30,20 @@ def get_features(packets):
     '''This function will return a feature vector when given a particular
         bin of emotiv data, expected in the form of an array of Packets'''
     def get_values(dic):
-        '''This is a temporary function to allow compatibility with old
-            datasets. It is terrible. remove it after collecting new data.'''
+        '''This function unpacks the raw values from the Packets.'''
         lst = []
         global sensors
         for sensor in sensors:
             lst.append(getattr(dic, sensor)[0])
         return lst
-##    print "check!"
+    
     if len(packets) != int(BIN_SIZE * SAMPLE_RATE):
         print "problem:"
         print str(len(packets))
         print str(int(BIN_SIZE * SAMPLE_RATE))
         raise EmoDSPException
-    label = packets[0][1]
-    data = np.array(map(lambda p : get_values(p[0]),
+
+    data = np.array(map(lambda p : get_values(p),
                         packets), order='F').transpose()
     pows = np.abs(np.fft.fft(data))[:, :FREQ_CUTOFF]
     return pows.flatten()
