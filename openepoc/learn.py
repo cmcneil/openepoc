@@ -98,45 +98,45 @@ class Profile:
         X = self.pca.transform(np.array(self.get_featurevec(data)[0]))
         return self.svm.predict_proba(X)
 
-    def test_SVM(self):
-        '''Splits the sets into training sets and test sets.'''
-        perc = 8 # Will use 1/perc of the data for the test set.
-        lab = self.labelled_red.keys()[0]
-        test_neutral = self.neutral_red_red[len(self.neutral_red)-len(self.neutral_red)/perc:]
-        test_lab = self.labelled_red[lab][len(self.labelled_red[lab])-\
-                                      len(self.labelled_red[lab])/perc:]
-
-        X_test = np.concatenate((test_neutral, test_lab), axis=0)
-        y_test = np.array(['n']*len(test_neutral) + ['p']*len(test_lab))
-
-        neutral_train = self.neutral_red[:len(self.neutral_red)-len(self.neutral_red)/perc]
-        label_train = self.labelled_red[lab][:len(self.labelled_red[lab])-\
-                                      len(self.labelled_red[lab])/perc]
-
-        X_train = np.concatenate((neutral_train, label_train), axis=0)
-        y_train = np.array(['n']*len(neutral_train) + ['p']*len(label_train))
-        
-##        gammas = [0.00001, 0.001, 0.01, 0.1, 0.2, 0.4, 1.0, 2.5]
-##        best_gamma = (0.1, 0.0)
-##        for test in gammas:
-##            potential = SVC(gamma=test)
-##            score = cross_val_score(potential, X_train, y_train, cv=8).mean()
-##            potential.fit(X_train, y_train)
-##            print "support vectors: " + str(potential.n_support_)
-##            if score > best_gamma[1]:
-##                best_gamma = (test, score)
-
-##        kernels = ['linear', 'poly', 'sigmoid']
-##        for kern in kernels:
-##            potential = SVC(kernel=kern)
+##    def test_SVM(self):
+##        '''Splits the sets into training sets and test sets.'''
+##        perc = 8 # Will use 1/perc of the data for the test set.
+##        lab = self.labelled_red.keys()[0]
+##        test_neutral = self.neutral_red_red[len(self.neutral_red)-len(self.neutral_red)/perc:]
+##        test_lab = self.labelled_red[lab][len(self.labelled_red[lab])-\
+##                                      len(self.labelled_red[lab])/perc:]
+##
+##        X_test = np.concatenate((test_neutral, test_lab), axis=0)
+##        y_test = np.array(['n']*len(test_neutral) + ['p']*len(test_lab))
+##
+##        neutral_train = self.neutral_red[:len(self.neutral_red)-len(self.neutral_red)/perc]
+##        label_train = self.labelled_red[lab][:len(self.labelled_red[lab])-\
+##                                      len(self.labelled_red[lab])/perc]
+##
+##        X_train = np.concatenate((neutral_train, label_train), axis=0)
+##        y_train = np.array(['n']*len(neutral_train) + ['p']*len(label_train))
+##        
+####        gammas = [0.00001, 0.001, 0.01, 0.1, 0.2, 0.4, 1.0, 2.5]
+####        best_gamma = (0.1, 0.0)
+####        for test in gammas:
+####            potential = SVC(gamma=test)
 ####            score = cross_val_score(potential, X_train, y_train, cv=8).mean()
-##            potential.fit(X_train, y_train)
-##            print "support vectors: " + str(potential.n_support_)
-##            print "score: " + str(potential.score(X_test, y_test))
-        
-        svm = SVC(kernel='poly')
-        svm.fit(X_train, y_train)
-        print "Number of support vectors: " + str(svm.n_support_)
-        print svm.score(X_test, y_test).mean()
+####            potential.fit(X_train, y_train)
+####            print "support vectors: " + str(potential.n_support_)
+####            if score > best_gamma[1]:
+####                best_gamma = (test, score)
+##
+####        kernels = ['linear', 'poly', 'sigmoid']
+####        for kern in kernels:
+####            potential = SVC(kernel=kern)
+######            score = cross_val_score(potential, X_train, y_train, cv=8).mean()
+####            potential.fit(X_train, y_train)
+####            print "support vectors: " + str(potential.n_support_)
+####            print "score: " + str(potential.score(X_test, y_test))
+##        
+##        svm = SVC(kernel='poly')
+##        svm.fit(X_train, y_train)
+##        print "Number of support vectors: " + str(svm.n_support_)
+##        print svm.score(X_test, y_test).mean()
 
         

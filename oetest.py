@@ -1,6 +1,21 @@
 '''An extremely simplistic test. Really only ensures it doesn't throw errors.'''
-import openepoc as oe
-classif = oe.learn.Classifier(['data/10sdump1360740702-push.pkl', 'data/30sdump1360740620-neutral.pkl'])
-classif.extract_features()
-classif.reduce_dim()
-classif.test_SVM()
+import openepoc.api as emo
+import gevent
+
+profile = emo.new_profile()
+
+print "Training Neutral State"
+emo.train_neutral(profile, 9)
+print "Train Push Command in 3."
+c = 3
+while c > 0:
+    print str(c) + '...'
+    c -= 1
+    gevent.sleep(1)
+emo.train_command(profile, 'push', 9)
+
+commands = emo.get_command_queue(profile)
+
+while True:
+    cmd = commands.get()
+    print 'Command: ' + str(cmd)
