@@ -5,14 +5,14 @@ import gevent
 profile = emo.new_profile()
 
 print "Training Neutral State"
-emo.train_neutral(profile, 9)
+emo.train_command(profile, 9)
 print "Train Push Command in 3."
 c = 3
 while c > 0:
     print str(c) + '...'
     c -= 1
     gevent.sleep(1)
-emo.train_command(profile, 'push', 9)
+emo.train_command(profile, 9, label='push')
 
 commands = emo.get_command_queue(profile)
 
