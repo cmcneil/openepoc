@@ -131,35 +131,35 @@ print "Now concentrate on a push command in 3."
 ##cls.add_data(packet_list, 'push')
 ##cls.reduce_dim()
 ##cls.train()
-
-packet_list = []
-temp_list = []
-emotiv.clear()
-gevent.sleep(0)
-while len(packet_list) < dsp.BIN_SIZE * dsp.SAMPLE_RATE:
-    try:
-        packet = emotiv.dequeue()
-        packet_list.append(packet)
-    except gevent.queue.Empty, e:
-        print "Queue is empty!"
-        pass
-
-print "Queue filled with " +str(len(packet_list))
-
-##t0 = time.time()
-while True:
-    try:
-        packet = emotiv.dequeue()
-        temp_list.append(packet)
-    except gevent.queue.Empty, e:
-        print "Queue is empty!"
-        pass
-    if len(temp_list) > dsp.STAGGER * dsp.SAMPLE_RATE:
-        packet_list.extend(temp_list)
-        packet_list = packet_list[len(temp_list):]
-        ans = cls.classify(packet_list)
-##        print time.time() - t0
-        print ans
-        temp_list = []
+##
+##packet_list = []
+##temp_list = []
+##emotiv.clear()
+##gevent.sleep(0)
+##while len(packet_list) < dsp.BIN_SIZE * dsp.SAMPLE_RATE:
+##    try:
+##        packet = emotiv.dequeue()
+##        packet_list.append(packet)
+##    except gevent.queue.Empty, e:
+##        print "Queue is empty!"
+##        pass
+##
+##print "Queue filled with " +str(len(packet_list))
+##
+####t0 = time.time()
+##while True:
+##    try:
+##        packet = emotiv.dequeue()
+##        temp_list.append(packet)
+##    except gevent.queue.Empty, e:
+##        print "Queue is empty!"
+##        pass
+##    if len(temp_list) > dsp.STAGGER * dsp.SAMPLE_RATE:
+##        packet_list.extend(temp_list)
+##        packet_list = packet_list[len(temp_list):]
+##        ans = cls.classify(packet_list)
+####        print time.time() - t0
+##        print ans
+##        temp_list = []
 
 
