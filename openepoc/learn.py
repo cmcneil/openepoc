@@ -10,13 +10,14 @@ from sklearn.decomposition import RandomizedPCA
 from sklearn.svm import SVC
 from sklearn.cross_validation import cross_val_score
 
-class Classifier:
+class Profile:
     def __init__(self, filelist):
         self.raw_neutral = []
         self.neutral = []
         self.labelled = {}
         self.raw_labelled = {}
         self.labelled_red = {}
+        self.classes = []
         for name in filelist:
             label = re.match('[\w/]+-(\w+)\.pkl', name).group(1)
             if label == 'neutral':
@@ -76,20 +77,26 @@ class Classifier:
 
     def train(self):
         '''Trains the classifier.'''
-        lab = self.labelled_red.keys()[0]
+        if self.labelled_red:
+            Xlist = [self.neutral_red]
+            ylist = [0]*len(self.neutral_red)
+            self.classes = ['neutral']
+            i = 1
+            for lab in self.labelled_red:
+                Xlist.append(self.labelled_red[lab])
+                ylist.extend([i]*len(self.labelled_red[lab]))
+                self.classes.append(lab)
+            X_train = np.concatenate(tuple(Xlist), axis=0)
+            y_train = np.array(ylist)
 
-        X_train = np.concatenate((self.neutral_red,
-                                  self.labelled_red[lab]), axis=0)
-        y_train = np.array([0]*len(self.neutral_red) +
-                           [1]*len(self.labelled_red[lab]))
-
-        self.svm = SVC(kernel='poly')
-        self.svm.fit(X_train, y_train)
+            self.svm = SVC(class_weight='auto', kernel='poly',
+                           probability=True)
+            self.svm.fit(X_train, y_train)
 
     def classify(self, data):
         ''''Classify a point. Expects a bunch of packets.'''
         X = self.pca.transform(np.array(self.get_featurevec(data)[0]))
-        return self.svm.predict(X)
+        return self.svm.predict_proba(X)
 
     def test_SVM(self):
         '''Splits the sets into training sets and test sets.'''
@@ -100,14 +107,14 @@ class Classifier:
                                       len(self.labelled_red[lab])/perc:]
 
         X_test = np.concatenate((test_neutral, test_lab), axis=0)
-        y_test = np.array([0]*len(test_neutral) + [1]*len(test_lab))
+        y_test = np.array(['n']*len(test_neutral) + ['p']*len(test_lab))
 
         neutral_train = self.neutral_red[:len(self.neutral_red)-len(self.neutral_red)/perc]
         label_train = self.labelled_red[lab][:len(self.labelled_red[lab])-\
                                       len(self.labelled_red[lab])/perc]
 
         X_train = np.concatenate((neutral_train, label_train), axis=0)
-        y_train = np.array([0]*len(neutral_train) + [1]*len(label_train))
+        y_train = np.array(['n']*len(neutral_train) + ['p']*len(label_train))
         
 ##        gammas = [0.00001, 0.001, 0.01, 0.1, 0.2, 0.4, 1.0, 2.5]
 ##        best_gamma = (0.1, 0.0)

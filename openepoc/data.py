@@ -20,14 +20,14 @@ def record(length, label=""):
 
     print "Beginning Recording..."
     t0 = int(time.time())
-    filename = "data/"+str(length)+"sdump"+str(t0)+ "-" + label + ".pkl"
+    filename = str(length)+"sdump"+str(t0)+ "-" + label + ".pkl"
     packet_list = []
     gevent.spawn(emotiv.setup)
     gevent.sleep(1)
     while (time.time() - t0) < length:
         try:
             packet = emotiv.dequeue()
-            packet_list.append(packet, label)
+            packet_list.append(packet)
         except gevent.queue.Empty, e:
             print "Queue is empty!"
             pass
