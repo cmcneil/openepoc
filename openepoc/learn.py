@@ -5,29 +5,33 @@ import emotiv
 import dsp
 import data
 import re
+import cPickle as pickle
+import os
+
 
 from sklearn.decomposition import RandomizedPCA
 from sklearn.svm import SVC
 from sklearn.cross_validation import cross_val_score
 
 class Profile:
-    def __init__(self, filelist):
+    def __init__(self, name):
         self.raw_neutral = []
         self.neutral = []
         self.labelled = {}
         self.raw_labelled = {}
         self.labelled_red = {}
         self.classes = []
-        for name in filelist:
-            label = re.match('[\w/]+-(\w+)\.pkl', name).group(1)
-            if label == 'neutral':
-                # Load all the data into memory
-                self.raw_neutral.append(data.load(name))
-            else:
-                if label in self.labelled:
-                    self.raw_labelled[label].append(data.load(name))
-                else:
-                    self.raw_labelled[label] = [data.load(name)]
+        self.name = name
+##        for name in filelist:
+##            label = re.match('[\w/]+-(\w+)\.pkl', name).group(1)
+##            if label == 'neutral':
+##                # Load all the data into memory
+##                self.raw_neutral.append(data.load(name))
+##            else:
+##                if label in self.labelled:
+##                    self.raw_labelled[label].append(data.load(name))
+##                else:
+##                    self.raw_labelled[label] = [data.load(name)]
 
     def get_featurevec(self, data):
             '''Takes in data in the form of an array of EmoPackets, and outputs
@@ -97,6 +101,14 @@ class Profile:
         ''''Classify a point. Expects a bunch of packets.'''
         X = self.pca.transform(np.array(self.get_featurevec(data)[0]))
         return self.svm.predict_proba(X)
+
+    def save(self):
+        '''Saves this classifier to a data directory.'''
+        this_dir, this_filename = os.path.split(__file__)
+        DATA_PATH = os.path.join(this_dir, "data", self.name+'.pkl')
+        dumpfile = open(DATA_PATH, "wb")
+        pickle.dump(self, dumpfile, pickle.HIGHEST_PROTOCOL)
+        dumpfile.close()
 
 ##    def test_SVM(self):
 ##        '''Splits the sets into training sets and test sets.'''

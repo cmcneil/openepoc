@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 
 from emotiv import Emotiv
-import learn
+from learn import Profile
 import time
 import gevent
 import dsp
+import cPickle as pickle
 
 emotiv = Emotiv(displayOutput=False, research_headset=False)
 gevent.spawn(emotiv.setup)
 gevent.sleep(0)
 
-def new_profile():
-    '''Returns a new Profile.'''
-    cls = learn.Profile([])
-    return cls
+def load_profile(filename):
+    '''Returns a Profile loaded from that filename.'''
+    f = open(filename, "rb")
+    profile = pickle.load(f)
+    f.close()
+    return profile
 
 def train_command(profile, t, label='neutral'):
     '''Trains the state of profile for t seconds.'''

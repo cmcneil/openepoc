@@ -2,7 +2,8 @@
 import openepoc.api as emo
 import gevent
 
-profile = emo.new_profile()
+name = 'Test'
+profile = emo.Profile(name)
 
 print "Training Neutral State"
 emo.train_command(profile, 9)
