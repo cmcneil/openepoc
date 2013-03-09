@@ -32,7 +32,7 @@ commands = emo.get_command_queue(profile) # returns a gevent Queue which will fi
 
 while True:
     cmd = commands.get()
-    print "Command: " + str(cmd)
+    print 'neutral: ' + str(cmd[0, 0]) + ', push: ' + str(cmd[0, 1])
 ```    
 
 
