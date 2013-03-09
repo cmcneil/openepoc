@@ -9,6 +9,8 @@ Dependencies
 
 * <a href="https://github.com/cmcneil/emokit">My fork</a> of qdot's emokit, and all the dependencies of emokit.
 * python and standard libraries.
+* python-numpy
+* <a href="http://scikit-learn.org/stable/">scikit-learn</a>
 * <a href="http://www.gevent.org/">Gevent</a>
 
 Example Use
