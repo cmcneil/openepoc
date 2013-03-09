@@ -1,4 +1,5 @@
-'''An extremely simplistic test. Really only ensures it doesn't throw errors.'''
+'''An extremely simplistic test. Really only ensures it doesn't throw errors.
+Also tests classification.'''
 import openepoc.api as emo
 import gevent
 
@@ -19,4 +20,4 @@ commands = emo.get_command_queue(profile)
 
 while True:
     cmd = commands.get()
-    print 'Command: ' + str(cmd)
+    print 'neutral: ' + str(cmd[0, 0]) + ', push: ' + str(cmd[0, 1])

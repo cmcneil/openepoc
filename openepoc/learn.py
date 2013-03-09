@@ -22,16 +22,6 @@ class Profile:
         self.labelled_red = {}
         self.classes = []
         self.name = name
-##        for name in filelist:
-##            label = re.match('[\w/]+-(\w+)\.pkl', name).group(1)
-##            if label == 'neutral':
-##                # Load all the data into memory
-##                self.raw_neutral.append(data.load(name))
-##            else:
-##                if label in self.labelled:
-##                    self.raw_labelled[label].append(data.load(name))
-##                else:
-##                    self.raw_labelled[label] = [data.load(name)]
 
     def get_featurevec(self, data):
             '''Takes in data in the form of an array of EmoPackets, and outputs
@@ -110,6 +100,19 @@ class Profile:
         pickle.dump(self, dumpfile, pickle.HIGHEST_PROTOCOL)
         dumpfile.close()
 
+    def test_accuracy(self, test_data):
+        '''Takes in test data in the form of a
+            list of tuples of labelled data.'''
+        test_sets = []
+        y_test = []
+        for datum in test_data:
+            test_sets.append(np.array(self.get_featurevec(datum[0])))
+            y_test.extend([self.classes.index(datum[1])] * len(datum[0]))
+            
+        X_test = np.concatenate(tuple(test_sets), axis=0)
+        return self.svm.score(X_test, y_test).mean()
+        
+        
 ##    def test_SVM(self):
 ##        '''Splits the sets into training sets and test sets.'''
 ##        perc = 8 # Will use 1/perc of the data for the test set.

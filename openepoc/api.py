@@ -5,6 +5,7 @@ from learn import Profile
 import time
 import gevent
 import dsp
+import re
 import cPickle as pickle
 
 emotiv = Emotiv(displayOutput=False, research_headset=False)
@@ -18,15 +19,31 @@ def load_profile(filename):
     f.close()
     return profile
 
-def train_command(profile, t, label='neutral'):
+def test_commands(profile, files):
+    '''Given a list of files, extracts the data, and tests the outcome.'''
+    test_data = []
+    for f in files:
+        f = open(filename, "rb")
+        packet_list = pickle.load(f)
+        label = re.match('[\w/]+-(\w+)\.pkl', filename).group(1)
+        test_data.append((packet_list, label))
+    profile.test_accuracy(self, test_data)
+        
+
+def train_command(profile, t=None, filename=None, label='neutral'):
     '''Trains the state of profile for t seconds.'''
-    packet_list = []
-    emotiv.clear()
-    gevent.sleep(0)
-    t0 = time.time()
-    while (time.time() - t0) < t:
-        packet = emotiv.dequeue()
-        packet_list.append(packet)
+    if filename != None:
+        f = open(filename, "rb")
+        packet_list = pickle.load(f)
+        label = re.match('[\w/]+-(\w+)\.pkl', filename).group(1)
+    else:
+        packet_list = []
+        emotiv.clear()
+        gevent.sleep(0)
+        t0 = time.time()
+        while (time.time() - t0) < t:
+            packet = emotiv.dequeue()
+            packet_list.append(packet)
     profile.add_data(packet_list, label)
     profile.reduce_dim()
     profile.train() 
@@ -60,5 +77,6 @@ def get_command_queue(profile):
     q = gevent.queue.Queue()
     gevent.spawn(listen, profile, q)
     return q
+
     
 
