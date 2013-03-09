@@ -112,6 +112,8 @@ class Profile:
         X_test = np.concatenate(tuple(test_sets), axis=0)
         return self.svm.score(X_test, y_test).mean()
         
+class Command:
+    def __init__(self):
         
 ##    def test_SVM(self):
 ##        '''Splits the sets into training sets and test sets.'''
