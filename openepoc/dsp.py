@@ -26,7 +26,7 @@ def fastest_fourier(data):
                       realtypes=[])
     fft.execute()
 
-def get_features(packets):
+def get_features(packets, cutoff=FREQ_CUTOFF):
     '''This function will return a feature vector when given a particular
         bin of emotiv data, expected in the form of an array of Packets'''
     def get_values(dic):
@@ -45,7 +45,7 @@ def get_features(packets):
 
     data = np.array(map(lambda p : get_values(p),
                         packets), order='F').transpose()
-    pows = np.abs(np.fft.fft(data))[:, :FREQ_CUTOFF]
+    pows = np.abs(np.fft.fft(data))[:, :cutoff]
     return pows.flatten()
     
 class EmoDSPException(Exception):

@@ -10,7 +10,7 @@ import os
 
 
 from sklearn.decomposition import RandomizedPCA
-from sklearn.svm import SVC
+from sklearn.svm import SVC, OneClassSVM
 from sklearn.cross_validation import cross_val_score
 
 class Profile:
@@ -26,7 +26,7 @@ class Profile:
     def get_featurevec(self, data):
             '''Takes in data in the form of an array of EmoPackets, and outputs
                 a list of feature vectors.'''
-            # CHECK THIS: 
+            # CHECKED, all good :) 
             num_bins = (len(data)/int(dsp.SAMPLE_RATE*dsp.STAGGER) -
                         int(dsp.BIN_SIZE / dsp.STAGGER) + 1)
             size = int(dsp.BIN_SIZE*dsp.SAMPLE_RATE)
@@ -57,9 +57,8 @@ class Profile:
             for sess in self.raw_labelled[key]:
                 self.labelled[key].extend(self.get_featurevec(sess))
 
-    def reduce_dim(self):
+    def reduce_dim(self, NDIM=5):
         '''Reduces the dimension of the extracted feature vectors.'''
-        NDIM = 5
         X = np.array(self.neutral)
         pca = RandomizedPCA(n_components=NDIM).fit(X)
         print pca.explained_variance_ratio_
@@ -112,8 +111,71 @@ class Profile:
         X_test = np.concatenate(tuple(test_sets), axis=0)
         return self.svm.score(X_test, y_test).mean()
         
-class Command:
-    def __init__(self):
+##class Command:
+##    def __init__(self):
+
+### I should clearly make these two inherit from a more generic class, but
+### for now I just copied and pasted as the fundamental purposes of these two
+### classes are different, and either could change their methods independently
+### of the other.
+class Cluster(object):
+
+    def __init__(self, name):
+        self.name = name
+        self.raw_dataset = []
+        self.dataset = []
+        self.dataset_red = []
+    
+    def get_featurevec(self, data):
+            '''Takes in data in the form of an array of EmoPackets, and outputs
+                a list of feature vectors.'''
+            # CHECKED, all good :) 
+            num_bins = (len(data)/int(dsp.SAMPLE_RATE*dsp.STAGGER) -
+                        int(dsp.BIN_SIZE / dsp.STAGGER) + 1)
+            size = int(dsp.BIN_SIZE*dsp.SAMPLE_RATE)
+            starts = int(dsp.SAMPLE_RATE*dsp.STAGGER)
+            points = []
+            for i in range(num_bins):
+                points.append(dsp.get_features(data[i*starts:i*starts+size]))
+            return points
+
+    def add_data(self, raw):
+        '''Allows the addition of new data. Will retrain upon addition.
+            Expects a list of EmoPackets.'''
+        self.dataset.extend(self.get_featurevec(raw))
+
+    def extract_features(self):
+        '''Does feature extraction for all of the datasets.'''
+        self.dataset = []
+        for sess in self.raw_dataset:
+            self.dataset.extend(self.get_featurevec(sess))
+
+    def reduce_dim(self, NDIM=5):
+        '''Reduces the dimension of the extracted feature vectors.'''
+        X = np.array(self.dataset)
+        self.pca = RandomizedPCA(n_components=NDIM).fit(X)
+        self.dataset_red = self.pca.transform(X)
+        
+    def train(self):
+        '''Trains the classifier.'''
+        self.svm = OneClassSVM()
+        self.svm.fit(self.dataset_red)
+
+    def is_novel(self, pt):
+        '''Says whether or not the bin is novel. Expects an array of EmoPackets'''
+        X = self.pca.transform(np.array(self.get_featurevec(data)[0]))
+        ans = self.svm.predict(X)
+        self.dataset_red.append(X)
+        self.train()
+        return ans
+                    
+    def save(self):
+        '''Saves this classifier to a data directory.'''
+        this_dir, this_filename = os.path.split(__file__)
+        DATA_PATH = os.path.join(this_dir, "data", self.name+'.pkl')
+        dumpfile = open(DATA_PATH, "wb")
+        pickle.dump(self, dumpfile, pickle.HIGHEST_PROTOCOL)
+        dumpfile.close()
         
 ##    def test_SVM(self):
 ##        '''Splits the sets into training sets and test sets.'''

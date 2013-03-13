@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from emotiv import Emotiv
-from learn import Profile
+from learn import Profile, Cluster
 import time
 import gevent
 import dsp
@@ -78,5 +78,49 @@ def get_command_queue(profile):
     gevent.spawn(listen, profile, q)
     return q
 
+# Functions for managing Cluster for mindgarden
+
+def create_cluster(name):
+    global emotiv
+    cluster = learn.Cluster(name)
+    emotiv.clear()
+    gevent.sleep(0)
+    packet_list = []
+
+    print "Wait 5 seconds to cluster."
+    t0 = time.time()
+    while time.time() - t0:
+        packet = emotiv.dequeue()
+        packet_list.append(packet)
+    cluster.add_data(packet_list)
+    cluster.train()
+    return cluster
+
+def get_novelty_queue(cluster)
+    def listen(cluster, q):
+        '''Worker for the greenlet Thread.'''
+        packet_list = []
+        temp_list = []
+        emotiv.clear()
+        gevent.sleep(0)
+        while len(packet_list) < dsp.BIN_SIZE * dsp.SAMPLE_RATE:
+            packet = emotiv.dequeue()
+            packet_list.append(packet)
+            
+        while True:
+            packet = emotiv.dequeue()
+            temp_list.append(packet)
+            
+            if len(temp_list) > dsp.STAGGER * dsp.SAMPLE_RATE:
+                packet_list.extend(temp_list)
+                packet_list = packet_list[len(temp_list):]
+                ans = cluster.is_novel(packet_list)
+                q.put_nowait(ans)
+                temp_list = []
+                gevent.sleep(0)
+                
+    q = gevent.queue.Queue()
+    gevent.spawn(listen, profile, q)
+    return q
     
 
